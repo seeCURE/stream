@@ -2,21 +2,23 @@ const express = require('express');
 const request = require('request');
 const app = express();
 
+// Serve static files (e.g., player CSS from CDN won't be needed if you self-host later)
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
     <html lang="en">
       <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>CNBC Live Stream</title>
         <link rel="icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/CNBC_2023.svg/500px-CNBC_2023.svg.png" type="image/png">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.16/mediaelementplayer.min.css" />
         <style>
           body {
             margin: 0;
             padding: 0;
-            background-color: #000000;
-            color: #ffffff;
+            background-color: #000;
+            color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             display: flex;
             flex-direction: column;
@@ -36,31 +38,34 @@ app.get('/', (req, res) => {
             margin: 0 0 1rem;
           }
 
-          audio {
-            width: 90vw;
+          .mejs__container {
+            width: 90vw !important;
             max-width: 400px;
-            height: 50px;
-          }
-
-          @media (hover: none) and (pointer: coarse) {
-            audio {
-              height: 60px;
-            }
           }
         </style>
       </head>
       <body>
         <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/CNBC_2023.svg/500px-CNBC_2023.svg.png" alt="CNBC Logo" />
         <h1>CNBC Live Stream</h1>
-        <audio controls autoplay>
-          <source src="/stream" type="audio/mpeg">
-          Your browser does not support the audio element.
+        <audio id="player" controls autoplay preload="none">
+          <source src="/stream" type="audio/mpeg" />
         </audio>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mediaelement/4.2.16/mediaelement-and-player.min.js"></script>
+        <script>
+          const player = new MediaElementPlayer('player', {
+            features: ['playpause', 'progress', 'current', 'duration', 'volume'],
+            success: function (mediaElement, originalNode, instance) {
+              // MediaElement player is ready
+            }
+          });
+        </script>
       </body>
     </html>
   `);
 });
 
+// Proxy stream with required Referer header
 app.get('/stream', (req, res) => {
   const streamUrl = 'https://radiokrug.ru/usa/CNBC/icecast.audio';
   request({
@@ -71,7 +76,8 @@ app.get('/stream', (req, res) => {
   }).pipe(res);
 });
 
+// Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(\`Server is running on port \${PORT}\`);
 });
