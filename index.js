@@ -2,7 +2,7 @@ const express = require('express');
 const request = require('request');
 const app = express();
 
-// Serve static files (your player page)
+// Serve player page
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -55,9 +55,6 @@ app.get('/', (req, res) => {
         <script>
           const player = new MediaElementPlayer('player', {
             features: ['playpause', 'progress', 'current', 'duration', 'volume'],
-            success: function (mediaElement, originalNode, instance) {
-              // MediaElement player is ready
-            }
           });
         </script>
       </body>
@@ -65,7 +62,7 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Proxy stream with SSL cert ignored
+// Proxy stream, ignore SSL expiry
 app.get('/stream', (req, res) => {
   const streamUrl = 'https://radiokrug.ru/usa/CNBC/icecast.audio';
   request({
@@ -74,7 +71,7 @@ app.get('/stream', (req, res) => {
       'Referer': 'https://radiostationusa.fm/'
     },
     agentOptions: {
-      rejectUnauthorized: false   // <-- ignore SSL errors
+      rejectUnauthorized: false // Ignore SSL issues
     }
   }).on('error', (err) => {
     console.error('Stream error:', err.message);
@@ -85,5 +82,5 @@ app.get('/stream', (req, res) => {
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(\`Server running on port \${PORT}\`);
+  console.log(`Server running on port ${PORT}`);
 });
