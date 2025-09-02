@@ -2,7 +2,7 @@ const express = require('express');
 const request = require('request');
 const app = express();
 
-// Serve static files (e.g., player CSS from CDN won't be needed if you self-host later)
+// Serve static files (your player page)
 app.get('/', (req, res) => {
   res.send(`
     <!DOCTYPE html>
@@ -65,19 +65,25 @@ app.get('/', (req, res) => {
   `);
 });
 
-// Proxy stream with required Referer header
+// Proxy stream with SSL cert ignored
 app.get('/stream', (req, res) => {
   const streamUrl = 'https://radiokrug.ru/usa/CNBC/icecast.audio';
   request({
     url: streamUrl,
     headers: {
       'Referer': 'https://radiostationusa.fm/'
+    },
+    agentOptions: {
+      rejectUnauthorized: false   // <-- ignore SSL errors
     }
+  }).on('error', (err) => {
+    console.error('Stream error:', err.message);
+    res.status(500).send('Error fetching stream');
   }).pipe(res);
 });
 
-// Start the server
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(\`Server is running on port \${PORT}\`);
+  console.log(\`Server running on port \${PORT}\`);
 });
